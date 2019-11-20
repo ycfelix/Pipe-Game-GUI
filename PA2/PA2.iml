@@ -9,5 +9,10 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="lib" level="project" />
     <orderEntry type="library" name="org.realityforge.org.jetbrains.annotations:org.jetbrains.annotations:1.2.0" level="project" />
+    <orderEntry type="library" name="org.jetbrains:annotations:17.0.01" level="project" />
+    <orderEntry type="library" name="org.openjfx:javafx-base:12.0.2" level="project" />
+    <orderEntry type="library" name="org.openjfx:javafx-controls:12.0.2" level="project" />
+    <orderEntry type="library" name="org.openjfx:javafx-graphics:12.0.2" level="project" />
+    <orderEntry type="library" name="org.openjfx:javafx-media:12.0.2" level="project" />
   </component>
 </module>

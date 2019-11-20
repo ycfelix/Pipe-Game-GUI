@@ -1,5 +1,5 @@
 package controllers;
-
+//done
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import models.Config;
@@ -63,6 +63,9 @@ public class SceneManager {
 
     private SceneManager() {
         // TODO: Add CSS styles to every scene
+        this.scenes.forEach((k,v)->{
+            v.getStylesheets().add(Config.CSS_STYLES_PATH);
+        });
     }
 
     /**
@@ -99,8 +102,13 @@ public class SceneManager {
      * @param pane New pane to display.
      * @throws IllegalArgumentException If the {@code pane} is not known.
      */
-    public void showPane(@NotNull final Class<? extends GamePane> pane) {
+    public void showPane(@NotNull final Class<? extends GamePane> pane) throws IllegalArgumentException {
         // TODO
+        Scene sc=this.scenes.get(pane);
+        if(sc==null){
+            throw new IllegalArgumentException("pane "+pane.getName()+" unknown");
+        }
+        this.showPane(pane);
     }
 
     /**

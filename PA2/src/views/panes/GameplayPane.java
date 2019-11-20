@@ -7,6 +7,8 @@ import io.Deserializer;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -55,6 +57,11 @@ public class GameplayPane extends GamePane {
     @Override
     void connectComponents() {
         // TODO
+        this.canvasContainer.getChildren().addAll(this.gameplayCanvas);
+        this.bottomBar.getChildren().addAll(this.queueCanvas,this.quitToMenuButton);
+        this.setCenter(this.canvasContainer);
+        this.setTop(this.topBar);
+        this.setBottom(bottomBar);
     }
 
     /**
@@ -63,6 +70,7 @@ public class GameplayPane extends GamePane {
     @Override
     void styleComponents() {
         // TODO
+        this.bottomBar.getStyleClass().add("Bottom menu");
     }
 
     /**
@@ -71,6 +79,10 @@ public class GameplayPane extends GamePane {
     @Override
     void setCallbacks() {
         // TODO
+        this.gameplayCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED,
+                event -> GameplayPane.this.connectComponents());
+        this.quitToMenuButton.setOnAction(event -> GameplayPane.this.doQuitToMenuAction());
+        this.setOnKeyPressed(e->this.connectComponents());
     }
 
     /**

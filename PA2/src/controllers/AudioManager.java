@@ -1,10 +1,11 @@
 package controllers;
-
+//done
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -66,6 +67,20 @@ public class AudioManager {
      */
     private void playFile(final String name) {
         // TODO
+        if(!this.enabled){
+            return;
+        }
+        Media sound=new Media(ResourceLoader.getResource
+                        ("assets/audio/"+name+".mp3"));
+        MediaPlayer player=new MediaPlayer(sound);
+        player.onEndOfMediaProperty().setValue(
+                ()->{
+                    this.soundPool.remove(player);
+                    player.dispose();
+                }
+        );
+        this.soundPool.add(player);
+        player.play();
     }
 
     /**

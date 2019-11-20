@@ -1,8 +1,10 @@
 package controllers;
-
+//done
 import models.exceptions.ResourceNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -17,9 +19,13 @@ public class ResourceLoader {
     @NotNull
     private static final Path RES_PATH;
 
-    static {
+    static{
         // TODO: Initialize RES_PATH
-        RES_PATH = null;
+        Path p = Paths.get("","resources");
+        if(!Files.exists(p)){
+            throw new RuntimeException("resource folder not exist");
+        }
+        RES_PATH=p.toAbsolutePath();
     }
 
     /**
@@ -30,8 +36,12 @@ public class ResourceLoader {
      * @throws ResourceNotFoundException If the file cannot be found under the resource directory.
      */
     @NotNull
-    public static String getResource(@NotNull final String relativePath) {
+    public static String getResource(@NotNull final String relativePath) throws ResourceNotFoundException{
         // TODO
-        return null;
+        Path r=RES_PATH.resolve(relativePath);
+        if(!Files.exists(r)) {
+            throw new ResourceNotFoundException(relativePath + " not found");
+        }
+        return r.toAbsolutePath().toFile().toURI().toString();
     }
 }
