@@ -1,9 +1,10 @@
 package controllers;
-
+//done
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.transform.Rotate;
+import models.PipeQueue;
 import models.map.cells.Cell;
 import models.pipes.Pipe;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +72,10 @@ public class Renderer {
      */
     private static void drawRotatedImage(@NotNull GraphicsContext gc, @NotNull Image image, double angle, double x, double y) {
         // TODO
+        gc.save();
+        rotate(gc,angle,x+image.getWidth()/2.0,y+image.getHeight()/2.0);
+        gc.drawImage(image,x,y);
+        gc.restore();
     }
 
     /**
@@ -81,6 +86,15 @@ public class Renderer {
      */
     public static void renderMap(@NotNull Canvas canvas, @NotNull Cell[][] map) {
         // TODO
+        canvas.setWidth(map[0].length*32);
+        canvas.setHeight(map.length*32);
+        GraphicsContext gc=canvas.getGraphicsContext2D();
+        for(int i=0;i<map.length;i++){
+            for(int j=0;j<map[i].length;j++){
+                CellImage cell=map[i][j].getImageRep();
+                drawRotatedImage(gc,cell.image,cell.rotation,j*32,i*32);
+            }
+        }
     }
 
     /**
@@ -91,5 +105,12 @@ public class Renderer {
      */
     public static void renderQueue(@NotNull Canvas canvas, @NotNull List<Pipe> pipeQueue) {
         // TODO
+        canvas.setHeight(32.0);
+        canvas.setWidth(pipeQueue.size()*40);
+        GraphicsContext gc=canvas.getGraphicsContext2D();
+        for(int i=0;i<pipeQueue.size();i++){
+            CellImage c=pipeQueue.get(i).getImageRep();
+            drawRotatedImage(gc,c.image,c.rotation,i*40.0,0);
+        }
     }
 }

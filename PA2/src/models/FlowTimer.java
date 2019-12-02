@@ -93,13 +93,22 @@ public class FlowTimer {
      * Creates an instance with custom delay.
      *
      * <p>
-     * This constructor should also register a callback to decrement current value on flow.
+     * This constructor should also register a callback to increment current value on flow.
      * </p>
      *
      * @param initialValue Initial delay value.
      */
     FlowTimer(int initialValue) {
         // TODO
+        this.ticksElapsed=-1*initialValue;
+        this.currentValue.set(-1);
+        this.registerFlowCallback(new Runnable() {
+            @Override
+            public void run() {
+                FlowTimer.this.currentValue.set(FlowTimer.this.currentValue.get()+1);
+            }
+        });
+
     }
 
     /**
@@ -130,6 +139,18 @@ public class FlowTimer {
      */
     void start() {
         // TODO
+        this.flowTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                FlowTimer.this.ticksElapsed++;
+                FlowTimer.this.onTickCallbacks.forEach(Runnable::run);
+                if (FlowTimer.this.ticksElapsed >= 0) {
+                    if(FlowTimer.this.ticksElapsed%defaultFlowDuration==0){
+                        FlowTimer.this.onFlowCallbacks.forEach(Runnable::run);
+                    }
+                }
+            }
+        },1000,1000);
     }
 
     /**
@@ -137,6 +158,7 @@ public class FlowTimer {
      */
     void stop() {
         // TODO
+        this.flowTimer.cancel();
     }
 
     /**

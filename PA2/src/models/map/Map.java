@@ -438,6 +438,9 @@ public class Map {
      */
     public void fillAll() {
         // TODO
+        this.sourceCell.setFilled();
+        this.fillTiles(this.cols*this.rows);
+        this.sinkCell.setFilled();
     }
 
     /**

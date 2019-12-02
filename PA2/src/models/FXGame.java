@@ -13,6 +13,7 @@ import textgame.game.Game;
 import util.Coordinate;
 
 import java.util.List;
+import java.util.TimerTask;
 
 /**
  * JavaFX version of {@link textgame.game.Game}.
@@ -86,7 +87,9 @@ public class FXGame {
      */
     private FXGame(int rows, int cols) {
         // TODO
-        this(rows, cols, 0, null, null);
+        this.map=new Map(rows+2,cols+2);
+        this.pipeQueue=new PipeQueue();
+        this.flowTimer=new FlowTimer();
     }
 
     /**
@@ -100,9 +103,9 @@ public class FXGame {
      */
     public FXGame(int rows, int cols, int delay, @NotNull Cell[][] cells, @Nullable List<Pipe> pipes) {
         // TODO
-        map = null;
-        pipeQueue = null;
-        flowTimer = null;
+        map = new Map(rows,cols,cells);
+        pipeQueue = new PipeQueue(pipes);
+        flowTimer = new FlowTimer(delay);
     }
 
     /**
@@ -144,6 +147,13 @@ public class FXGame {
      */
     public void placePipe(int row, int col) {
         // TODO
+        Pipe p=this.pipeQueue.peek();
+        Coordinate c=new Coordinate(row, col);
+        if(this.map.tryPlacePipe(c,p)){
+            this.pipeQueue.consume();
+            this.cellStack.push(new FillableCell(c,p));
+            this.numOfSteps.set(this.numOfSteps.get()+1);
+        }
     }
 
     /**
@@ -151,6 +161,8 @@ public class FXGame {
      */
     public void skipPipe() {
         // TODO
+        this.numOfSteps.set(this.numOfSteps.get()+1);
+        this.pipeQueue.consume();
     }
 
     /**
@@ -158,6 +170,17 @@ public class FXGame {
      */
     public void undoStep() {
         // TODO
+        FillableCell undoCell=this.cellStack.pop();
+        if(undoCell==null){
+            return;
+        }
+        if (undoCell.getPipe().map(Pipe::getFilled).orElse(false)) {
+            cellStack.push(undoCell);
+            return ;
+        }
+        pipeQueue.undo(undoCell.getPipe().orElseThrow());
+        map.undo(undoCell.coord);
+        this.numOfSteps.set(this.numOfSteps.get()+1);
     }
 
     /**
@@ -183,6 +206,10 @@ public class FXGame {
      */
     public void updateState() {
         // TODO
+        if(this.flowTimer.distance()>=0){
+            this.map.fillBeginTile();
+            this.map.fillTiles(this.flowTimer.distance());
+        }
     }
 
     /**
@@ -190,7 +217,12 @@ public class FXGame {
      */
     public boolean hasWon() {
         // TODO
-        return false;
+        boolean win=this.map.checkPath();
+        if(win){
+            this.flowTimer.stop();
+            this.fillAllPipes();
+        }
+        return win;
     }
 
     /**
@@ -198,7 +230,14 @@ public class FXGame {
      */
     public boolean hasLost() {
         // TODO
-        return false;
+        if(this.numOfSteps.get()<=0){
+            return false;
+        }
+        boolean lost=this.map.hasLost();
+        if(lost){
+            this.flowTimer.stop();
+        }
+        return lost;
     }
 
     /**

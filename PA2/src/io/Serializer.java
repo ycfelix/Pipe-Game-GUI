@@ -1,10 +1,8 @@
 package io;
-
+//done
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Path;
 
 /**
@@ -30,5 +28,25 @@ public class Serializer {
      */
     public void serializeGameProp(@NotNull final GameProperties prop) throws IOException {
         // TODO
+        File f=this.path.toFile();
+        if(f.exists()&&f.delete());
+        if(f.createNewFile()){
+            throw new IOException("cannot create file");
+        }
+        try(BufferedWriter writer=new BufferedWriter(new PrintWriter(f))){
+            writer.write(prop.rows);
+            writer.newLine();
+            writer.write(prop.cols);
+            writer.newLine();
+            writer.write(prop.delay);
+            for(int i=0;i<prop.rows;i++){
+                for(int j=0;j<prop.cols;j++){
+                    writer.write(prop.cells[i][j].toSerializedRep());
+                }
+                writer.newLine();
+            }
+        }catch (Exception e){
+            throw new IOException("cannot do IO");
+        }
     }
 }

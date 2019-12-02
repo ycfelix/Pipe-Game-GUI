@@ -78,7 +78,14 @@ public class TerminationCell extends Cell {
     @Override
     public Renderer.CellImage getImageRep() {
         // TODO
-        return null;
+        Image img=this.isFilled?FILLED_IMG:UNFILLED_IMG;
+        int rotation=switch(this.pointingTo){
+            case UP ->0;
+            case DOWN -> 180;
+            case LEFT -> 270;
+            case RIGHT -> 90;
+        };
+        return new Renderer.CellImage(img,rotation);
     }
 
     @NotNull

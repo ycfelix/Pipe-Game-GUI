@@ -1,5 +1,5 @@
 package controllers;
-
+//done
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -66,6 +66,8 @@ public class LevelManager {
      */
     public void setMapDirectory(@NotNull Path mapDirectory) {
         // TODO
+        this.mapDirectory=mapDirectory;
+        this.loadLevelNamesFromDisk();
     }
 
     /**
@@ -83,6 +85,20 @@ public class LevelManager {
      */
     private void loadLevelNamesFromDisk() {
         // TODO
+        try(Stream<Path> f=Files.walk(this.mapDirectory,0,new FileVisitOption[0])){
+            Stream<Path> files=f.filter(e->e.toFile().isFile());
+            List<String> maps=files.map(e->e.getFileName().toString()).filter(e->e.endsWith(".map")).
+                    sorted(String::compareTo).collect(Collectors.toList());
+            this.levelNames.clear();
+            this.levelNames.addAll(maps);
+        }
+        catch (Exception e){
+            this.levelNames.clear();
+            Alert a=new Alert(Alert.AlertType.WARNING);
+            a.setTitle("Critical Warning");
+            a.setHeaderText("cannot load level names from disk");
+            a.showAndWait();
+        }
     }
 
     @NotNull
@@ -96,7 +112,7 @@ public class LevelManager {
     @NotNull
     public Path getCurrentLevelPath() {
         // TODO
-        return null;
+        return this.mapDirectory.resolve(curLevelNameProperty.get()).normalize();
     }
 
     /**
@@ -107,6 +123,11 @@ public class LevelManager {
      */
     public void setLevel(@Nullable String levelName) {
         // TODO
+        if(levelName!=null&&levelName.isBlank()){
+            throw new IllegalArgumentException("empty level name!");
+        }
+        this.curLevelNameProperty.setValue(levelName);
+
     }
 
     /**
@@ -126,6 +147,15 @@ public class LevelManager {
     @Nullable
     public String getAndSetNextLevel() {
         // TODO
+        if(this.curLevelNameProperty.get()==null){
+            return null;
+        }
+        int idx=this.levelNames.indexOf(this.curLevelNameProperty.get());
+        if(idx!=-1&&idx<this.levelNames.size()-1){
+            String s=this.levelNames.get(idx+1);
+            this.setLevel(s);
+            return s;
+        }
         return null;
     }
 

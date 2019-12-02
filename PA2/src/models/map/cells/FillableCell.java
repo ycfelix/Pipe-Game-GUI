@@ -1,5 +1,5 @@
 package models.map.cells;
-
+//done
 import controllers.Renderer;
 import controllers.ResourceLoader;
 import javafx.scene.image.Image;
@@ -70,7 +70,10 @@ public class FillableCell extends Cell implements MapElement {
     @Override
     public Renderer.CellImage getImageRep() {
         // TODO
-        return null;
+        if(this.pipe==null){
+            return new Renderer.CellImage(IMAGE,0);
+        }
+        return this.pipe.getImageRep();
     }
 
     @NotNull

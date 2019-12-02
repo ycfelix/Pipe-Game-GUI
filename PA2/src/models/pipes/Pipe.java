@@ -157,7 +157,19 @@ public class Pipe implements MapElement {
          */
         @NotNull Renderer.CellImage getCellImage(boolean isFilled) {
             // TODO
-            return null;
+            Image img=null;
+            int rotation=0;
+            switch (this){
+                case HORIZONTAL:rotation=90;img=isFilled?STRAIGHT_FILLED:STRAIGHT_UNFILLED;break;
+                case VERTICAL:rotation=0;img=isFilled?STRAIGHT_FILLED:STRAIGHT_UNFILLED;break;
+                case TOP_LEFT:rotation=0;img=isFilled?CORNER_FILLED:CORNER_UNFILLED;break;
+                case TOP_RIGHT:rotation=90;img=isFilled?CORNER_FILLED:CORNER_UNFILLED;break;
+                case BOTTOM_LEFT:rotation=270;img=isFilled?CORNER_FILLED:CORNER_UNFILLED;break;
+                case BOTTOM_RIGHT:rotation=180;img=isFilled?CORNER_FILLED:CORNER_UNFILLED;break;
+                case CROSS:img=isFilled?CROSS_FILLED:CROSS_UNFILLED;break;
+                default: throw new IllegalStateException("unknown pipe");
+            }
+            return new Renderer.CellImage(img,rotation);
         }
     }
 }
