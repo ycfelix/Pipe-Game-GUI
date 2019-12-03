@@ -38,15 +38,29 @@ public class NumberTextField extends TextField {
      */
     private boolean validate(@NotNull String text) {
         // TODO
-        return true;
+        if(text.isEmpty()){
+            return true;
+        }
+        try{
+            Integer.parseInt(text);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
     }
 
     /**
      * @return Integer value represented by the text in the {@link TextField}.
      * @throws NumberFormatException If {@link NumberTextField#getCharacters()} cannot be parsed into an integer.
      */
-    public int getValue() {
+    public int getValue() throws NumberFormatException{
         // TODO
-        return 0;
+        int result=0;
+        try{
+            result=Integer.parseInt(this.getCharacters().toString());
+        }catch (Exception e){
+            throw new NumberFormatException("cannot format number");
+        }
+        return result;
     }
 }

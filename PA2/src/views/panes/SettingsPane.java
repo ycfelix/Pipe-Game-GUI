@@ -95,6 +95,11 @@ public class SettingsPane extends GamePane {
     @Override
     public void connectComponents() {
         // TODO
+        this.leftContainer.getChildren().addAll(returnButton,
+                saveButton,rowBox,colBox,delayBox,flowBox,toggleSoundButton);
+        this.centerContainer.getChildren().add(infoText);
+        this.setLeft(this.leftContainer);
+        this.setCenter(this.centerContainer);
     }
 
     /**
@@ -106,6 +111,10 @@ public class SettingsPane extends GamePane {
     @Override
     void styleComponents() {
         // TODO
+        this.infoText.getStyleClass().add("text-area");
+        this.infoText.setEditable(false);
+        this.infoText.setWrapText(true);
+        this.infoText.setPrefHeight(Config.HEIGHT);
     }
 
     /**
@@ -114,6 +123,21 @@ public class SettingsPane extends GamePane {
     @Override
     void setCallbacks() {
         // TODO
+        this.saveButton.setOnAction(e-> {
+            this.validate().ifPresentOrElse(f->{
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("warning");
+                alert.setHeaderText("validate error");
+                alert.setContentText(f);
+                alert.showAndWait();
+            },()->this.returnToMainMenu(true));
+        });
+        this.returnButton.setOnAction(e->this.returnToMainMenu(false));
+        this.toggleSoundButton.setOnAction(e->{
+            AudioManager manager=AudioManager.getInstance();
+            manager.setEnabled(!manager.isEnabled());
+            fillValues();
+        });
     }
 
     /**
@@ -121,6 +145,15 @@ public class SettingsPane extends GamePane {
      */
     private void fillValues() {
         // TODO
+        this.toggleSoundButton.setText("FX Sound:"+(AudioManager.getInstance().isEnabled()?"enabled":"disabled"));
+        this.rowsField.clear();
+        this.colsField.clear();
+        this.delayField.clear();
+        this.flowField.clear();
+        this.rowsField.replaceSelection(String.valueOf(FXGame.getDefaultRows()));
+        this.colsField.replaceSelection(String.valueOf(FXGame.getDefaultCols()));
+        this.delayField.replaceSelection(String.valueOf(FlowTimer.getDefaultDelay()));
+        this.flowField.replaceSelection(String.valueOf(FlowTimer.getDefaultFlowDuration()));
     }
 
     /**
@@ -130,6 +163,14 @@ public class SettingsPane extends GamePane {
      */
     private void returnToMainMenu(final boolean writeback) {
         // TODO
+        if(writeback){
+            FXGame.setDefaultCols(colsField.getValue());
+            FXGame.setDefaultRows(rowsField.getValue());
+            FlowTimer.setDefaultDelay(delayField.getValue());
+            FlowTimer.setDefaultFlowDuration(flowField.getValue());
+        }
+        fillValues();
+        SceneManager.getInstance().showPane(MainMenuPane.class);
     }
 
     /**
@@ -150,6 +191,23 @@ public class SettingsPane extends GamePane {
     @NotNull
     private Optional<String> validate() {
         // TODO
-        return null;
+        Optional<String> result=Optional.empty();
+        if(this.delayField.getValue()<=0){
+            result=Optional.of(MSG_BAD_DELAY_NUM);
+            return result;
+        }
+        else if(this.rowsField.getValue()<=1){
+            result=Optional.of(MSG_BAD_ROW_NUM);
+            return result;
+        }
+        else if(this.colsField.getValue()<=1){
+            result=Optional.of(MSG_BAD_COL_NUM);
+            return result;
+        }
+        else if(this.flowField.getValue()<=0){
+            result=Optional.of(MSG_BAD_FLOW_NUM);
+            return result;
+        }
+        return result;
     }
 }

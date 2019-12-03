@@ -13,6 +13,7 @@ public class BigVBox extends VBox {
      */
     public BigVBox() {
         // TODO
+        super(20);
     }
 
     public BigVBox(double spacing) {
@@ -29,5 +30,6 @@ public class BigVBox extends VBox {
 
     {
         // TODO: Add "big-vbox" style
+        this.getStyleClass().add("big-vbox");
     }
 }

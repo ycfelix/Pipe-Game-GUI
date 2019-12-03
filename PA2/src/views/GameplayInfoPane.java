@@ -1,5 +1,6 @@
 package views;
 
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
@@ -20,6 +21,8 @@ public class GameplayInfoPane extends BigVBox {
 
     public GameplayInfoPane(StringProperty levelNameProperty, IntegerProperty timerProperty, IntegerProperty numMovesProperty, IntegerProperty numUndoProperty) {
         // TODO
+        this.bindTo(levelNameProperty,timerProperty,numMovesProperty,numUndoProperty);
+        this.getChildren().addAll(levelNameLabel,timerLabel,numMovesLabel,numUndoLabel);
     }
 
     /**
@@ -47,5 +50,20 @@ public class GameplayInfoPane extends BigVBox {
      */
     private void bindTo(StringProperty levelNameProperty, IntegerProperty timerProperty, IntegerProperty numMovesProperty, IntegerProperty numUndoProperty) {
         // TODO
+        if(levelNameProperty.get()!=null){
+            this.levelNameLabel.textProperty().bind(Bindings.createStringBinding(() -> "Level: " +levelNameProperty.get(), levelNameProperty));
+        }else {
+            levelNameLabel.setText("Level: generated");
+        }
+
+        this.timerLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+            return "Time: " + format(timerProperty.get());
+        }, timerProperty));
+        this.numMovesLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+            return "Moves: " + numMovesProperty.get();
+        }, numMovesProperty));
+        this.numUndoLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+            return "Undo Counts: " + numUndoProperty.get();
+        },numUndoProperty));
     }
 }

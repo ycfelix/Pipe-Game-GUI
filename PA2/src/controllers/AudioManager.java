@@ -76,7 +76,10 @@ public class AudioManager {
         player.onEndOfMediaProperty().setValue(
                 ()->{
                     this.soundPool.remove(player);
-                    player.dispose();
+                    Objects.requireNonNull(player);
+                    Thread t=new Thread(player::dispose);
+                    t.setDaemon(true);
+                    t.start();
                 }
         );
         this.soundPool.add(player);

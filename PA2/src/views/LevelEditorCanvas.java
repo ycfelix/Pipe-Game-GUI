@@ -70,6 +70,21 @@ public class LevelEditorCanvas extends Canvas {
      */
     private void resetMap(int rows, int cols, int delay) {
         // TODO
+        this.gameProp=new GameProperties(rows,cols);
+        this.gameProp.delay=delay;
+
+        for(int i=0;i<rows;i++){
+            for(int j=0;j<cols;j++){
+                Coordinate cor=new Coordinate(i,j);
+                if(i!=0&&i!=rows-1&&j!=0&&j!=cols-1){
+                    this.gameProp.cells[i][j]=new FillableCell(cor);
+                }
+                else{
+                    this.gameProp.cells[i][j]=new Wall(cor);
+                }
+            }
+        }
+        this.renderCanvas();
     }
 
     /**
@@ -91,6 +106,44 @@ public class LevelEditorCanvas extends Canvas {
      */
     public void setTile(@NotNull CellSelection sel, double x, double y) {
         // TODO
+        int row=(int)y/32;
+        int col=(int)x/32;
+        if(row!=0&&row!=this.sourceCell.coord.row-1||col!=0&&col!=this.sourceCell.coord.col-1){
+            Coordinate cor=new Coordinate(row,col);
+            TerminationCell.Type endCell=row!=0&&row!=this.sourceCell.coord.row-1&&
+                    col!=0&&col!=this.sourceCell.coord.col-1?
+                    TerminationCell.Type.SOURCE: TerminationCell.Type.SINK;
+
+            Direction dir;
+            if(endCell==TerminationCell.Type.SINK){
+                if(row==0){
+                    dir=Direction.UP;
+                }
+                else if(row==this.sourceCell.coord.row-1){
+                    dir=Direction.DOWN;
+                }
+                else if(col==0){
+                    dir=Direction.LEFT;
+                }
+                else if(col==this.sourceCell.coord.col-1){
+                    dir=Direction.RIGHT;
+                }
+                else{
+                    throw new IllegalStateException("terminate cell not at wall");
+                }
+            }
+            else{
+                dir=this.sinkCell!=null?this.sinkCell.pointingTo:Direction.UP;
+            }
+
+            Cell cell= switch (sel){
+                case WALL->new Wall(cor);
+                case CELL->new FillableCell(cor);
+                case TERMINATION_CELL->new TerminationCell(cor,dir,endCell);
+                default->throw new IllegalArgumentException("wrong cell type");
+            };
+            this.setTileByMapCoord(cell);
+        }
     }
 
     /**
@@ -103,6 +156,29 @@ public class LevelEditorCanvas extends Canvas {
      */
     private void setTileByMapCoord(@NotNull Cell cell) {
         // TODO
+        Coordinate cor=cell.coord;
+        TerminationCell terminationCell;
+        if(this.gameProp.cells[cor.row][cor.col] instanceof TerminationCell){
+            terminationCell= (TerminationCell) this.gameProp.cells[cor.row][cor.col];
+            if(terminationCell.type==TerminationCell.Type.SOURCE){
+                this.sourceCell=null;
+            }
+            else {
+                this.sinkCell=null;
+            }
+        }
+        if(cell instanceof TerminationCell){
+            terminationCell= (TerminationCell) cell;
+            if(terminationCell.type==TerminationCell.Type.SOURCE){
+                this.sourceCell=terminationCell;
+            }
+            else {
+                this.sinkCell=terminationCell;
+            }
+        }
+        this.gameProp.cells[cor.row][cor.col]=cell;
+        this.renderCanvas();
+
     }
 
     /**
@@ -110,6 +186,14 @@ public class LevelEditorCanvas extends Canvas {
      */
     public void toggleSourceTileRotation() {
         // TODO
+        if (this.sourceCell != null) {
+            Coordinate cor=this.sourceCell.coord;
+            Direction dir = this.sourceCell.pointingTo.rotateCW();
+            TerminationCell t=new TerminationCell(this.sourceCell.coord,dir,this.sourceCell.type);
+            this.gameProp.cells[cor.row][cor.col]=t;
+            this.sourceCell = t;
+            this.renderCanvas();
+        }
     }
 
     /**
@@ -121,7 +205,17 @@ public class LevelEditorCanvas extends Canvas {
      */
     public boolean loadFromFile() {
         // TODO
-        return false;
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+        a.setTitle("Confirm");
+        a.setHeaderText("Load a map from file?");
+        a.setContentText("Current map contents will be lost.");
+        a.getButtonTypes().setAll(ButtonType.CANCEL, ButtonType.OK);
+        a.showAndWait();
+        if ((a.getResult()).equals(ButtonType.CANCEL)) {
+            return false;
+        }
+        File f = this.getTargetLoadFile();
+        return f != null ? this.loadFromFile(f.toPath()) : false;
     }
 
     /**
@@ -135,7 +229,9 @@ public class LevelEditorCanvas extends Canvas {
     @Nullable
     private File getTargetLoadFile() {
         // TODO
-        return null;
+        FileChooser chooser = new FileChooser();
+        chooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("Map", Collections.singletonList("*.map")));
+        return chooser.showOpenDialog(null);
     }
 
     /**
@@ -149,7 +245,40 @@ public class LevelEditorCanvas extends Canvas {
      */
     private boolean loadFromFile(@NotNull Path path) {
         // TODO
-        return false;
+        this.sourceCell=null;
+        this.sinkCell=null;
+        try{
+            this.gameProp=new Deserializer(path).parseGameFile();
+            for(int i=0;i<this.gameProp.rows;i++){
+                for(int j=0;j<this.gameProp.cols;j++){
+                    Cell cell=this.gameProp.cells[i][j];
+                    Coordinate cor=cell.coord;
+                    if(cell instanceof TerminationCell){
+                        if(i!=0&&i!=cor.row-1&&j!=0&&j!=cor.col-1){
+                            if(this.sourceCell!=null){
+                                throw new InvalidMapException("too many source");
+                            }
+                            this.sourceCell= (TerminationCell) cell;
+                        }else{
+                            if(this.sinkCell!=null){
+                                throw new InvalidMapException("too many sink");
+                            }
+                            this.sinkCell=(TerminationCell) cell;
+                        }
+                    }
+                }
+            }
+            this.renderCanvas();
+            return true;
+        }
+        catch (Exception e){
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Error");
+            a.setHeaderText("can't load map");
+            a.setContentText(e.getMessage());
+            a.showAndWait();
+            return false;
+        }
     }
 
     /**
@@ -157,6 +286,20 @@ public class LevelEditorCanvas extends Canvas {
      */
     public void saveToFile() {
         // TODO
+        Optional valid = this.checkValidity();
+        if (valid != null&&valid.isPresent()) {
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Error");
+            a.setHeaderText("fail checking validity");
+            a.setContentText((String)valid.get());
+            a.showAndWait();
+        }
+        else {
+            File f = this.getTargetSaveDirectory();
+            if (f != null) {
+                this.exportToFile(f.toPath());
+            }
+        }
     }
 
     /**
@@ -170,7 +313,9 @@ public class LevelEditorCanvas extends Canvas {
     @Nullable
     private File getTargetSaveDirectory() {
         // TODO
-        return null;
+        FileChooser chooser = new FileChooser();
+        chooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("Map", Collections.singletonList("*.map")));
+        return chooser.showSaveDialog(null);
     }
 
     /**
@@ -183,6 +328,16 @@ public class LevelEditorCanvas extends Canvas {
      */
     private void exportToFile(@NotNull Path p) {
         // TODO
+        Serializer serializer=new Serializer(p);
+        try{
+            serializer.serializeGameProp(this.gameProp);
+        }catch (Exception e){
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Error");
+            a.setHeaderText("fail save to file");
+            a.setContentText(e.getMessage());
+            a.showAndWait();
+        }
     }
 
     /**
@@ -202,7 +357,29 @@ public class LevelEditorCanvas extends Canvas {
      */
     private Optional<String> checkValidity() {
         // TODO
-        return null;
+        if(this.sourceCell==null){
+            return Optional.of(MSG_MISSING_SOURCE);
+        }
+        if(this.sinkCell==null){
+            return Optional.of(MSG_MISSING_SINK);
+        }
+        if(this.gameProp.rows>=2 && this.gameProp.cols>=2){
+            if(this.gameProp.delay<=0){
+                return Optional.of(MSG_BAD_DELAY);
+            }
+            else{
+                Coordinate source=this.sourceCell.coord.add(this.sourceCell.pointingTo.getOffset());
+                Coordinate sink=this.sinkCell.coord.add(this.sinkCell.pointingTo.getOpposite().getOffset());
+                if(this.gameProp.cells[source.row][source.col] instanceof Wall){
+                    return Optional.of(MSG_SOURCE_TO_WALL);
+                }
+                if(this.gameProp.cells[sink.row][sink.col] instanceof Wall){
+                    return Optional.of(MSG_SOURCE_TO_WALL);
+                }
+                return Optional.empty();
+            }
+        }
+        return Optional.of(MSG_BAD_DIMS);
     }
 
     public int getNumOfRows() {
