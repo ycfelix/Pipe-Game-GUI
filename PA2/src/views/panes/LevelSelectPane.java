@@ -38,6 +38,11 @@ public class LevelSelectPane extends GamePane {
     @Override
     void connectComponents() {
         // TODO
+        this.leftContainer.getChildren().addAll(returnButton
+                ,chooseMapDirButton,levelsListView,playButton,playRandom);
+        this.centerContainer.getChildren().add(this.levelPreview);
+        this.setLeft(this.leftContainer);
+        this.setCenter(this.centerContainer);
     }
 
     /**
@@ -46,6 +51,7 @@ public class LevelSelectPane extends GamePane {
     @Override
     void styleComponents() {
         // TODO
+        this.playButton.setDisable(true);
     }
 
     /**
@@ -54,6 +60,11 @@ public class LevelSelectPane extends GamePane {
     @Override
     void setCallbacks() {
         // TODO
+        this.returnButton.setOnAction(e->SceneManager.getInstance().showPane(MainMenuPane.class));
+        this.chooseMapDirButton.setOnAction(e->promptUserForMapDirectory());
+        this.playButton.setOnAction(e->startGame(false));
+        this.playRandom.setOnAction(e->startGame(true));
+        this.levelsListView.getSelectionModel().selectedItemProperty().addListener(e->this.connectComponents());
     }
 
     /**
@@ -68,6 +79,25 @@ public class LevelSelectPane extends GamePane {
      */
     private void startGame(final boolean generateRandom) {
         // TODO
+        GameplayPane p=SceneManager.getInstance().getPane(GameplayPane.class);
+        if(generateRandom){
+            LevelManager.getInstance().setLevel(null);
+            p.startGame(new FXGame());
+            SceneManager.getInstance().showPane(GameplayPane.class);
+        }
+        else{
+            try{
+                LevelManager.getInstance().setLevel(this.levelsListView.getSelectionModel().getSelectedItem());
+                FXGame game= new Deserializer(LevelManager.getInstance().getCurrentLevelPath()).parseFXGame();
+                if(game!=null){
+                    p.startGame(game);
+                    SceneManager.getInstance().showPane(GameplayPane.class);
+                }
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -79,6 +109,20 @@ public class LevelSelectPane extends GamePane {
      */
     private void onMapSelected(ObservableValue<? extends String> observable, String oldValue, String newValue) {
         // TODO
+        if(newValue!=null && this.levelsListView.getItems().stream().anyMatch(e->e.equals(newValue))){
+            LevelManager.getInstance().setLevel(newValue);
+            try{
+                FXGame game= new Deserializer(LevelManager.getInstance().getCurrentLevelPath()).parseFXGame();
+                if(game!=null){
+                    game.renderMap(this.levelPreview);
+                }
+            }catch (Exception e){
+            }
+        }
+        else{
+            this.levelPreview.setWidth(0);
+            this.levelPreview.setHeight(0);
+        }
     }
 
     /**
@@ -91,6 +135,11 @@ public class LevelSelectPane extends GamePane {
      */
     private void promptUserForMapDirectory() {
         // TODO
+        DirectoryChooser chooser=new DirectoryChooser();
+        File file=chooser.showDialog(null);
+        if(file!=null){
+            this.commitMapDirectoryChange(file);
+        }
     }
 
     /**
@@ -100,5 +149,7 @@ public class LevelSelectPane extends GamePane {
      */
     private void commitMapDirectoryChange(File dir) {
         // TODO
+        this.levelsListView.getSelectionModel().clearSelection();
+        LevelManager.getInstance().setMapDirectory(dir.toPath());
     }
 }

@@ -60,6 +60,14 @@ public class LevelEditorPane extends GamePane {
     @Override
     void connectComponents() {
         // TODO
+        this.leftContainer.getChildren().addAll(returnButton,rowBox
+                ,colBox,newGridButton,delayBox,selectedCell,
+                toggleRotationButton,loadButton,saveButton);
+        this.centerContainer.getChildren().add(this.levelEditor);
+        this.selectedCell.setItems(this.cellList);
+        this.selectedCell.getSelectionModel().select(0);
+        this.setLeft(this.returnButton);
+        this.setCenter(this.centerContainer);
     }
 
     /**
@@ -70,6 +78,7 @@ public class LevelEditorPane extends GamePane {
     @Override
     void styleComponents() {
         // TODO
+        this.selectedCell.setFixedCellSize(Config.LIST_CELL_HEIGHT);
     }
 
     /**
@@ -78,5 +87,30 @@ public class LevelEditorPane extends GamePane {
     @Override
     void setCallbacks() {
         // TODO
+        this.returnButton.setOnAction(e->
+                SceneManager.getInstance().showPane(MainMenuPane.class)
+        );
+        this.newGridButton.setOnAction(e->
+                this.levelEditor.changeAttributes(
+                        rowField.getValue(),colField.getValue(),delayField.getValue())
+        );
+        this.delayField.setOnAction(e->this.levelEditor.setAmountOfDelay(delayField.getValue()));
+
+        this.toggleRotationButton.setOnAction(e->this.levelEditor.toggleSourceTileRotation());
+        this.loadButton.setOnAction(e->
+        {
+            if(levelEditor.loadFromFile()){
+                this.rowField.setText(String.valueOf(this.levelEditor.getNumOfRows()));
+                this.colField.setText(String.valueOf(this.levelEditor.getNumOfCols()));
+                this.delayField.setText(String.valueOf(this.levelEditor.getAmountOfDelay()));
+            }
+        });
+        this.saveButton.setOnAction(e->
+                this.levelEditor.saveToFile()
+        );
+        this.levelEditor.setOnMouseClicked(e->{
+            this.levelEditor.setTile(
+                    this.selectedCell.getSelectionModel().getSelectedItem(),e.getX(),e.getY());
+        });
     }
 }

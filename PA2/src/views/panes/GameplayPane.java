@@ -23,8 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import views.BigButton;
 import views.BigVBox;
 import views.GameplayInfoPane;
-
+import javafx.scene.input.KeyCode;
 import java.io.FileNotFoundException;
+import java.util.Optional;
 
 import static models.Config.TILE_SIZE;
 
@@ -92,6 +93,20 @@ public class GameplayPane extends GamePane {
      */
     private void onCanvasClicked(MouseEvent event) {
         // TODO
+        boolean playing=!this.game.hasWon()&&!this.game.hasLost();
+        if(playing){
+            this.game.placePipe((int)event.getX()/TILE_SIZE,(int)event.getY()/TILE_SIZE);
+            if(this.game.hasWon()){
+                //bonus task 2: play sounds
+                AudioManager.getInstance().playSound(AudioManager.SoundRes.WIN);
+                Platform.runLater(this::createWinPopup);
+            }
+            else{
+                AudioManager.getInstance().playSound(AudioManager.SoundRes.MOVE);
+            }
+            this.game.renderMap(this.gameplayCanvas);
+            this.game.renderQueue(this.queueCanvas);
+        }
     }
 
     /**
@@ -101,6 +116,18 @@ public class GameplayPane extends GamePane {
      */
     private void onKeyPressed(KeyEvent event) {
         // TODO
+        boolean playing=!this.game.hasWon()&&!this.game.hasLost();
+        if(playing){
+            if(event.getCode()==KeyCode.U){
+                this.game.undoStep();
+                this.game.renderMap(this.gameplayCanvas);
+                this.game.renderQueue(this.queueCanvas);
+            }
+            else if(event.getCode()==KeyCode.S){
+                this.game.skipPipe();
+                this.game.renderQueue(this.queueCanvas);
+            }
+        }
     }
 
     /**
@@ -108,6 +135,18 @@ public class GameplayPane extends GamePane {
      */
     private void createWinPopup() {
         // TODO
+        Alert a=new Alert(Alert.AlertType.CONFIRMATION);
+        a.setTitle("level clear popup");
+        a.getButtonTypes().addAll(new ButtonType("Next Map"),new ButtonType("Return"));
+        Optional<ButtonType> c=a.showAndWait();
+        String cmd=c.orElseThrow().getText();
+        if(cmd.equals("Next Map")){
+            this.loadNextMap();
+        }
+        if(cmd.equals("Return")){
+            this.doQuitToMenu();
+        }
+
     }
 
     /**
@@ -115,6 +154,21 @@ public class GameplayPane extends GamePane {
      */
     private void loadNextMap() {
         // TODO
+        String s=LevelManager.getInstance().getAndSetNextLevel();
+        FXGame g=null;
+        if(s!=null){
+            try{
+                g=(new Deserializer(LevelManager.getInstance().getCurrentLevelPath())).parseFXGame();
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                g=null;
+            }
+            if(g==null){
+                g=new FXGame();
+            }
+            this.startGame(g);
+        }
     }
 
     /**
@@ -122,6 +176,16 @@ public class GameplayPane extends GamePane {
      */
     private void createLosePopup() {
         // TODO
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+        a.setTitle("Lose popup");
+        a.setHeaderText("you lose");
+        ButtonType lose = new ButtonType("Return");
+        a.getButtonTypes().setAll(lose);
+        Optional<ButtonType> c=a.showAndWait();
+        String cmd=c.orElseThrow().getText();
+        if(cmd.equals("Return")){
+            this.doQuitToMenu();
+        }
     }
 
     /**
@@ -129,6 +193,16 @@ public class GameplayPane extends GamePane {
      */
     private void doQuitToMenuAction() {
         // TODO
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+        a.setTitle("quit to menu popup");
+        a.setHeaderText("Quit to menu?");
+        a.setContentText("current progress may not be saved");
+        a.getButtonTypes().setAll(ButtonType.CANCEL, ButtonType.OK);
+        a.showAndWait();
+        ButtonType cmd=a.getResult();
+        if(cmd.equals(ButtonType.OK)) {
+            this.doQuitToMenu();
+        }
     }
 
     /**
@@ -136,6 +210,8 @@ public class GameplayPane extends GamePane {
      */
     private void doQuitToMenu() {
         // TODO
+        this.endGame();
+        SceneManager.getInstance().showPane(LevelSelectPane.class);
     }
 
     /**
@@ -145,6 +221,34 @@ public class GameplayPane extends GamePane {
      */
     void startGame(@NotNull FXGame game) {
         // TODO
+        if(this.game!=null){
+            this.endGame();
+        }
+        this.game=game;
+        this.infoPane=new GameplayInfoPane(
+                LevelManager.getInstance().getCurrentLevelProperty(),
+                this.ticksElapsed,
+                game.getNumOfSteps(),
+                game.getNumOfUndo()
+        );
+        this.topBar.getChildren().add(this.infoPane);
+        HBox.setHgrow(this.infoPane,Priority.ALWAYS);
+        game.addOnTickHandler(()->{
+            Platform.runLater(()->{
+                GameplayPane.this.ticksElapsed.set(GameplayPane.this.ticksElapsed.get()+1);
+            });
+        });
+        game.addOnFlowHandler(()->{
+            game.updateState();
+            game.renderMap(GameplayPane.this.gameplayCanvas);
+            if(game.hasLost()){
+                AudioManager.getInstance().playSound(AudioManager.SoundRes.LOSE);
+                Platform.runLater(this::createLosePopup);
+            }
+        });
+        game.renderMap(this.gameplayCanvas);
+        game.renderQueue(this.queueCanvas);
+        game.startCountdown();
     }
 
     /**
@@ -152,5 +256,14 @@ public class GameplayPane extends GamePane {
      */
     private void endGame() {
         // TODO
+        this.game.stopCountdown();
+        this.gameplayCanvas.setWidth(0);
+        this.gameplayCanvas.setHeight(0);
+        this.queueCanvas.setWidth(0);
+        this.queueCanvas.setHeight(0);
+        this.ticksElapsed.set(0);
+        this.topBar.getChildren().remove(this.infoPane);
+        this.infoPane=null;
+        this.game=null;
     }
 }
