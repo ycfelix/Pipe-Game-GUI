@@ -79,19 +79,22 @@ public class LevelSelectPane extends GamePane {
      */
     private void startGame(final boolean generateRandom) {
         // TODO
-        GameplayPane p=SceneManager.getInstance().getPane(GameplayPane.class);
+        LevelManager lvmgr=LevelManager.getInstance();
+        SceneManager scmgr=SceneManager.getInstance();
+        GameplayPane p=scmgr.getPane(GameplayPane.class);
         if(generateRandom){
-            LevelManager.getInstance().setLevel(null);
+            lvmgr.setLevel(null);
             p.startGame(new FXGame());
-            SceneManager.getInstance().showPane(GameplayPane.class);
+            scmgr.showPane(GameplayPane.class);
             return;
         }
         try{
-            LevelManager.getInstance().setLevel(this.levelsListView.getSelectionModel().getSelectedItem());
-            FXGame game= new Deserializer(LevelManager.getInstance().getCurrentLevelPath()).parseFXGame();
+            String s=this.levelsListView.getSelectionModel().getSelectedItem();
+            lvmgr.setLevel(s);
+            FXGame game= new Deserializer(lvmgr.getCurrentLevelPath()).parseFXGame();
             if(game!=null){
                 p.startGame(game);
-                SceneManager.getInstance().showPane(GameplayPane.class);
+                scmgr.showPane(GameplayPane.class);
             }
         }
         catch (Exception e){
@@ -109,15 +112,16 @@ public class LevelSelectPane extends GamePane {
      */
     private void onMapSelected(ObservableValue<? extends String> observable, String oldValue, String newValue) {
         // TODO
+        LevelManager lvmgr=LevelManager.getInstance();
         if(newValue==null){
             this.levelPreview.setWidth(0);
             this.levelPreview.setHeight(0);
             return;
         }
         if(this.levelsListView.getItems().stream().anyMatch(e->e.equals(newValue))){
-            LevelManager.getInstance().setLevel(newValue);
+            lvmgr.setLevel(newValue);
             try{
-                FXGame game= new Deserializer(LevelManager.getInstance().getCurrentLevelPath()).parseFXGame();
+                FXGame game= new Deserializer(lvmgr.getCurrentLevelPath()).parseFXGame();
                 if(game!=null){
                     game.renderMap(this.levelPreview);
                     this.playButton.setDisable(false);

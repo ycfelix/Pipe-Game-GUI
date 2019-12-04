@@ -237,9 +237,7 @@ public class GameplayPane extends GamePane {
         game.addOnTickHandler(new Runnable() {
             @Override
             public void run() {
-                Platform.runLater(()->{
-                    GameplayPane.this.ticksElapsed.set(GameplayPane.this.ticksElapsed.get()+1);
-                });
+                Platform.runLater(()-> GameplayPane.this.ticksElapsed.set(GameplayPane.this.ticksElapsed.get()+1));
             }
         });
         game.addOnFlowHandler(new Runnable() {

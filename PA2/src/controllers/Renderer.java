@@ -87,13 +87,13 @@ public class Renderer {
      */
     public static void renderMap(@NotNull Canvas canvas, @NotNull Cell[][] map) {
         // TODO
-        canvas.setWidth(map[0].length*32);
-        canvas.setHeight(map.length*32);
+        canvas.setWidth(map[0].length* TILE_SIZE);
+        canvas.setHeight(map.length*TILE_SIZE);
         GraphicsContext gc=canvas.getGraphicsContext2D();
         for(int i=0;i<map.length;i++){
             for(int j=0;j<map[i].length;j++){
                 CellImage cell=map[i][j].getImageRep();
-                drawRotatedImage(gc,cell.image,cell.rotation,j*32,i*32);
+                drawRotatedImage(gc,cell.image,cell.rotation,j*TILE_SIZE,i*TILE_SIZE);
             }
         }
     }

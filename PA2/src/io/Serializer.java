@@ -30,7 +30,7 @@ public class Serializer {
         // TODO
         File f=this.path.toFile();
         if(f.exists()&&f.delete());
-        f.createNewFile();
+        if(f.createNewFile());
         try(BufferedWriter writer=new BufferedWriter(new PrintWriter(f))){
             writer.write(String.valueOf(prop.rows));
             writer.newLine();
