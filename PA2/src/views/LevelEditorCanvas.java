@@ -108,10 +108,10 @@ public class LevelEditorCanvas extends Canvas {
         // TODO
         int row=(int)y/32;
         int col=(int)x/32;
-        if(row!=0&&row!=this.sourceCell.coord.row-1||col!=0&&col!=this.sourceCell.coord.col-1){
+        if(row!=0&&row!=this.gameProp.rows-1||col!=0&&col!=this.gameProp.cols-1){
             Coordinate cor=new Coordinate(row,col);
-            TerminationCell.Type endCell=row!=0&&row!=this.sourceCell.coord.row-1&&
-                    col!=0&&col!=this.sourceCell.coord.col-1?
+            TerminationCell.Type endCell=row!=0&&row!=this.gameProp.rows-1&&
+                    col!=0&&col!=this.gameProp.cols-1?
                     TerminationCell.Type.SOURCE: TerminationCell.Type.SINK;
 
             Direction dir;
@@ -119,13 +119,13 @@ public class LevelEditorCanvas extends Canvas {
                 if(row==0){
                     dir=Direction.UP;
                 }
-                else if(row==this.sourceCell.coord.row-1){
+                else if(row==this.gameProp.rows-1){
                     dir=Direction.DOWN;
                 }
                 else if(col==0){
                     dir=Direction.LEFT;
                 }
-                else if(col==this.sourceCell.coord.col-1){
+                else if(col==this.gameProp.cols-1){
                     dir=Direction.RIGHT;
                 }
                 else{
@@ -133,7 +133,7 @@ public class LevelEditorCanvas extends Canvas {
                 }
             }
             else{
-                dir=this.sinkCell!=null?this.sinkCell.pointingTo:Direction.UP;
+                dir=this.sourceCell!=null?this.sourceCell.pointingTo:Direction.UP;
             }
 
             Cell cell= switch (sel){

@@ -85,15 +85,14 @@ public class LevelManager {
      */
     private void loadLevelNamesFromDisk() {
         // TODO
-        try(Stream<Path> f=Files.walk(this.mapDirectory,0,new FileVisitOption[0])){
-            Stream<Path> files=f.filter(e->e.toFile().isFile());
-            List<String> maps=files.map(e->e.getFileName().toString()).filter(e->e.endsWith(".map")).
+        try(Stream<Path> f=Files.walk(this.mapDirectory,1)){
+            Stream<Path> files=f.filter(e-> e.toFile().isFile());
+            List<String> maps=files.map(Path::getFileName).map(Path::toString).filter(e->e.endsWith(".map")).
                     sorted(String::compareTo).collect(Collectors.toList());
             this.levelNames.clear();
             this.levelNames.addAll(maps);
         }
         catch (Exception e){
-            this.levelNames.clear();
             Alert a=new Alert(Alert.AlertType.WARNING);
             a.setTitle("Critical Warning");
             a.setHeaderText("cannot load level names from disk");
@@ -126,7 +125,7 @@ public class LevelManager {
         if(levelName!=null&&levelName.isBlank()){
             throw new IllegalArgumentException("empty level name!");
         }
-        this.curLevelNameProperty.setValue(levelName);
+        this.curLevelNameProperty.set(levelName);
 
     }
 
@@ -154,7 +153,7 @@ public class LevelManager {
         if(idx!=-1&&idx<this.levelNames.size()-1){
             String s=this.levelNames.get(idx+1);
             this.setLevel(s);
-            return s;
+            return this.curLevelNameProperty.get();
         }
         return null;
     }

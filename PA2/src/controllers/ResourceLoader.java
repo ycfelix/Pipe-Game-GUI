@@ -22,7 +22,7 @@ public class ResourceLoader {
     static{
         // TODO: Initialize RES_PATH
         Path p = Paths.get("","resources");
-        if(!Files.exists(p)){
+        if(!p.toFile().exists()){
             throw new RuntimeException("resource folder not exist");
         }
         RES_PATH=p.toAbsolutePath();
@@ -39,9 +39,9 @@ public class ResourceLoader {
     public static String getResource(@NotNull final String relativePath) throws ResourceNotFoundException{
         // TODO
         Path r=RES_PATH.resolve(relativePath);
-        if(!Files.exists(r)) {
-            throw new ResourceNotFoundException(relativePath + " not found");
+        if(r.toFile().exists()) {
+            return r.toAbsolutePath().toFile().toURI().toString();
         }
-        return r.toAbsolutePath().toFile().toURI().toString();
+        throw new ResourceNotFoundException(relativePath + " not found");
     }
 }

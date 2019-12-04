@@ -161,8 +161,9 @@ public class FXGame {
      */
     public void skipPipe() {
         // TODO
-        this.numOfSteps.set(this.numOfSteps.get()+1);
         this.pipeQueue.consume();
+        this.numOfSteps.set(this.numOfSteps.get()+1);
+
     }
 
     /**
@@ -174,9 +175,9 @@ public class FXGame {
         if(undoCell==null){
             return;
         }
-        if (undoCell.getPipe().map(Pipe::getFilled).orElse(false)) {
+        if (undoCell.getPipe().isPresent()&&undoCell.getPipe().get().getFilled()) {
             cellStack.push(undoCell);
-            return ;
+            return;
         }
         pipeQueue.undo(undoCell.getPipe().orElseThrow());
         map.undo(undoCell.coord);
@@ -206,8 +207,10 @@ public class FXGame {
      */
     public void updateState() {
         // TODO
-        if(this.flowTimer.distance()>=0){
+        if(this.flowTimer.distance()==0){
             this.map.fillBeginTile();
+            this.map.fillTiles(this.flowTimer.distance());
+        }else if(this.flowTimer.distance()>0){
             this.map.fillTiles(this.flowTimer.distance());
         }
     }
@@ -230,7 +233,7 @@ public class FXGame {
      */
     public boolean hasLost() {
         // TODO
-        if(this.numOfSteps.get()<=0){
+        if(this.flowTimer.distance()<=0){
             return false;
         }
         boolean lost=this.map.hasLost();

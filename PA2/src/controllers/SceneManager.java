@@ -105,10 +105,12 @@ public class SceneManager {
     public void showPane(@NotNull final Class<? extends GamePane> pane) throws IllegalArgumentException {
         // TODO
         Scene sc=this.scenes.get(pane);
-        if(sc==null){
+        if(sc!=null){
+            this.showScene(sc);
+        }
+        else{
             throw new IllegalArgumentException("pane "+pane.getName()+" unknown");
         }
-        this.showPane(pane);
     }
 
     /**

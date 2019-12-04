@@ -85,6 +85,9 @@ public class TerminationCell extends Cell {
             case LEFT -> 270;
             case RIGHT -> 90;
         };
+        if(this.type==Type.SINK){
+            rotation+=180;
+        }
         return new Renderer.CellImage(img,rotation);
     }
 

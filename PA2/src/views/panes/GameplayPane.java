@@ -71,7 +71,7 @@ public class GameplayPane extends GamePane {
     @Override
     void styleComponents() {
         // TODO
-        this.bottomBar.getStyleClass().add("Bottom menu");
+        this.bottomBar.getStyleClass().add("bottom-menu");
     }
 
     /**
@@ -80,10 +80,9 @@ public class GameplayPane extends GamePane {
     @Override
     void setCallbacks() {
         // TODO
-        this.gameplayCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED,
-                event -> GameplayPane.this.connectComponents());
+        this.gameplayCanvas.setOnMouseClicked(this::onCanvasClicked);
         this.quitToMenuButton.setOnAction(event -> GameplayPane.this.doQuitToMenuAction());
-        this.setOnKeyPressed(e->this.connectComponents());
+        this.setOnKeyPressed(this::onKeyPressed);
     }
 
     /**
@@ -95,9 +94,9 @@ public class GameplayPane extends GamePane {
         // TODO
         boolean playing=!this.game.hasWon()&&!this.game.hasLost();
         if(playing){
-            this.game.placePipe((int)event.getX()/TILE_SIZE,(int)event.getY()/TILE_SIZE);
+            this.game.placePipe((int)event.getY()/TILE_SIZE,(int)event.getX()/TILE_SIZE);
             if(this.game.hasWon()){
-                //bonus task 2: play sounds
+
                 AudioManager.getInstance().playSound(AudioManager.SoundRes.WIN);
                 Platform.runLater(this::createWinPopup);
             }
@@ -156,6 +155,7 @@ public class GameplayPane extends GamePane {
         // TODO
         String s=LevelManager.getInstance().getAndSetNextLevel();
         FXGame g=null;
+        System.out.println(s);
         if(s!=null){
             try{
                 g=(new Deserializer(LevelManager.getInstance().getCurrentLevelPath())).parseFXGame();
@@ -164,11 +164,11 @@ public class GameplayPane extends GamePane {
                 e.printStackTrace();
                 g=null;
             }
-            if(g==null){
-                g=new FXGame();
-            }
-            this.startGame(g);
         }
+        if(g==null){
+            g=new FXGame();
+        }
+        this.startGame(g);
     }
 
     /**

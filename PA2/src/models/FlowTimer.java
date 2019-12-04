@@ -102,12 +102,7 @@ public class FlowTimer {
         // TODO
         this.ticksElapsed=-1*initialValue;
         this.currentValue.set(-1);
-        this.registerFlowCallback(new Runnable() {
-            @Override
-            public void run() {
-                FlowTimer.this.currentValue.set(FlowTimer.this.currentValue.get()+1);
-            }
-        });
+        this.registerFlowCallback(() -> FlowTimer.this.currentValue.set(FlowTimer.this.currentValue.get()+1));
 
     }
 

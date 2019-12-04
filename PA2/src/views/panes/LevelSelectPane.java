@@ -64,7 +64,7 @@ public class LevelSelectPane extends GamePane {
         this.chooseMapDirButton.setOnAction(e->promptUserForMapDirectory());
         this.playButton.setOnAction(e->startGame(false));
         this.playRandom.setOnAction(e->startGame(true));
-        this.levelsListView.getSelectionModel().selectedItemProperty().addListener(e->this.connectComponents());
+        this.levelsListView.getSelectionModel().selectedItemProperty().addListener(this::onMapSelected);
     }
 
     /**
@@ -115,6 +115,7 @@ public class LevelSelectPane extends GamePane {
                 FXGame game= new Deserializer(LevelManager.getInstance().getCurrentLevelPath()).parseFXGame();
                 if(game!=null){
                     game.renderMap(this.levelPreview);
+                    this.playButton.setDisable(false);
                 }
             }catch (Exception e){
             }
