@@ -95,9 +95,9 @@ public class SettingsPane extends GamePane {
     @Override
     public void connectComponents() {
         // TODO
+        this.centerContainer.getChildren().add(infoText);
         this.leftContainer.getChildren().addAll(returnButton,
                 saveButton,rowBox,colBox,delayBox,flowBox,toggleSoundButton);
-        this.centerContainer.getChildren().add(infoText);
         this.setLeft(this.leftContainer);
         this.setCenter(this.centerContainer);
     }
@@ -111,9 +111,9 @@ public class SettingsPane extends GamePane {
     @Override
     void styleComponents() {
         // TODO
-        this.infoText.getStyleClass().add("text-area");
         this.infoText.setEditable(false);
         this.infoText.setWrapText(true);
+        this.infoText.getStyleClass().add("text-area");
         this.infoText.setPrefHeight(Config.HEIGHT);
     }
 
@@ -124,13 +124,17 @@ public class SettingsPane extends GamePane {
     void setCallbacks() {
         // TODO
         this.saveButton.setOnAction(e-> {
-            this.validate().ifPresentOrElse(f->{
+            Optional<String> result=this.validate();
+            if(result.isPresent()){
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("warning");
                 alert.setHeaderText("validate error");
-                alert.setContentText(f);
+                alert.setContentText(result.get());
                 alert.showAndWait();
-            },()->this.returnToMainMenu(true));
+            }
+            else{
+                this.returnToMainMenu(true);
+            }
         });
         this.returnButton.setOnAction(e->this.returnToMainMenu(false));
         this.toggleSoundButton.setOnAction(e->{
@@ -145,7 +149,7 @@ public class SettingsPane extends GamePane {
      */
     private void fillValues() {
         // TODO
-        this.toggleSoundButton.setText("FX Sound:"+(AudioManager.getInstance().isEnabled()?"enabled":"disabled"));
+        this.toggleSoundButton.setText("FX Sound: "+(AudioManager.getInstance().isEnabled()?"enabled":"disabled"));
         this.rowsField.clear();
         this.colsField.clear();
         this.delayField.clear();
@@ -196,15 +200,15 @@ public class SettingsPane extends GamePane {
             result=Optional.of(MSG_BAD_DELAY_NUM);
             return result;
         }
-        else if(this.rowsField.getValue()<=1){
+        if(this.rowsField.getValue()<=1){
             result=Optional.of(MSG_BAD_ROW_NUM);
             return result;
         }
-        else if(this.colsField.getValue()<=1){
+        if(this.colsField.getValue()<=1){
             result=Optional.of(MSG_BAD_COL_NUM);
             return result;
         }
-        else if(this.flowField.getValue()<=0){
+        if(this.flowField.getValue()<=0){
             result=Optional.of(MSG_BAD_FLOW_NUM);
             return result;
         }

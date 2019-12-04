@@ -4,6 +4,7 @@ import models.exceptions.ResourceNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.FileNotFoundException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,9 +39,13 @@ public class ResourceLoader {
     @NotNull
     public static String getResource(@NotNull final String relativePath) throws ResourceNotFoundException{
         // TODO
+        if(RES_PATH==null){
+            return "";
+        }
         Path r=RES_PATH.resolve(relativePath);
         if(r.toFile().exists()) {
-            return r.toAbsolutePath().toFile().toURI().toString();
+            URI resource=r.toAbsolutePath().toFile().toURI();
+            return resource.toString();
         }
         throw new ResourceNotFoundException(relativePath + " not found");
     }

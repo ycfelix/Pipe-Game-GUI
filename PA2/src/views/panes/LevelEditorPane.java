@@ -60,13 +60,13 @@ public class LevelEditorPane extends GamePane {
     @Override
     void connectComponents() {
         // TODO
+        this.centerContainer.getChildren().add(this.levelEditor);
         this.leftContainer.getChildren().addAll(returnButton,rowBox
                 ,colBox,newGridButton,delayBox,selectedCell,
                 toggleRotationButton,loadButton,saveButton);
-        this.centerContainer.getChildren().add(this.levelEditor);
         this.selectedCell.setItems(this.cellList);
         this.selectedCell.getSelectionModel().select(0);
-        this.setLeft(this.returnButton);
+        this.setLeft(this.leftContainer);
         this.setCenter(this.centerContainer);
     }
 
@@ -92,7 +92,9 @@ public class LevelEditorPane extends GamePane {
         );
         this.newGridButton.setOnAction(e->
                 this.levelEditor.changeAttributes(
-                        rowField.getValue(),colField.getValue(),delayField.getValue())
+                        rowField.getValue(),
+                        colField.getValue(),
+                        delayField.getValue())
         );
         this.delayField.setOnAction(e->this.levelEditor.setAmountOfDelay(delayField.getValue()));
 

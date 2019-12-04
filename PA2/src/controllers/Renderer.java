@@ -4,6 +4,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.transform.Rotate;
+import models.Config;
 import models.PipeQueue;
 import models.map.cells.Cell;
 import models.pipes.Pipe;
@@ -105,7 +106,7 @@ public class Renderer {
      */
     public static void renderQueue(@NotNull Canvas canvas, @NotNull List<Pipe> pipeQueue) {
         // TODO
-        canvas.setHeight(32.0);
+        canvas.setHeight(TILE_SIZE);
         canvas.setWidth(pipeQueue.size()*40);
         GraphicsContext gc=canvas.getGraphicsContext2D();
         for(int i=0;i<pipeQueue.size();i++){

@@ -72,7 +72,8 @@ public class LevelEditorCanvas extends Canvas {
         // TODO
         this.gameProp=new GameProperties(rows,cols);
         this.gameProp.delay=delay;
-
+        this.sourceCell=null;
+        this.sinkCell=null;
         for(int i=0;i<rows;i++){
             for(int j=0;j<cols;j++){
                 Coordinate cor=new Coordinate(i,j);
@@ -108,34 +109,22 @@ public class LevelEditorCanvas extends Canvas {
         // TODO
         int row=(int)y/32;
         int col=(int)x/32;
-        if(row!=0&&row!=this.gameProp.rows-1||col!=0&&col!=this.gameProp.cols-1){
-            Coordinate cor=new Coordinate(row,col);
-            TerminationCell.Type endCell=row!=0&&row!=this.gameProp.rows-1&&
-                    col!=0&&col!=this.gameProp.cols-1?
-                    TerminationCell.Type.SOURCE: TerminationCell.Type.SINK;
-
-            Direction dir;
+        Coordinate cor=new Coordinate(row,col);
+        TerminationCell.Type endCell=null;
+        if(row!=this.gameProp.rows-1&& col!=0&&col!=this.gameProp.cols-1){
+            endCell=TerminationCell.Type.SOURCE;
+        }
+        else if(row!=0&&row!=this.gameProp.rows-1||col!=0&&col!=this.gameProp.cols-1){
+            endCell=TerminationCell.Type.SINK;
+        }
+        if(endCell!=null){
+            Direction dir=null;
             if(endCell==TerminationCell.Type.SINK){
-                if(row==0){
-                    dir=Direction.UP;
-                }
-                else if(row==this.gameProp.rows-1){
-                    dir=Direction.DOWN;
-                }
-                else if(col==0){
-                    dir=Direction.LEFT;
-                }
-                else if(col==this.gameProp.cols-1){
-                    dir=Direction.RIGHT;
-                }
-                else{
-                    throw new IllegalStateException("terminate cell not at wall");
-                }
+                dir=getDirction(row,col);
             }
-            else{
+            else if(endCell==TerminationCell.Type.SOURCE){
                 dir=this.sourceCell!=null?this.sourceCell.pointingTo:Direction.UP;
             }
-
             Cell cell= switch (sel){
                 case WALL->new Wall(cor);
                 case CELL->new FillableCell(cor);
@@ -144,6 +133,26 @@ public class LevelEditorCanvas extends Canvas {
             };
             this.setTileByMapCoord(cell);
         }
+    }
+
+    private Direction getDirction(int row,int col){
+        Direction dir;
+        if(row==0){
+            dir=Direction.UP;
+        }
+        else if(row==this.gameProp.rows-1){
+            dir=Direction.DOWN;
+        }
+        else if(col==0){
+            dir=Direction.LEFT;
+        }
+        else if(col==this.gameProp.cols-1){
+            dir=Direction.RIGHT;
+        }
+        else{
+            throw new IllegalStateException("terminate cell not at wall");
+        }
+        return dir;
     }
 
     /**
@@ -163,7 +172,7 @@ public class LevelEditorCanvas extends Canvas {
             if(terminationCell.type==TerminationCell.Type.SOURCE){
                 this.sourceCell=null;
             }
-            else {
+            else if(terminationCell.type==TerminationCell.Type.SINK){
                 this.sinkCell=null;
             }
         }
@@ -172,7 +181,7 @@ public class LevelEditorCanvas extends Canvas {
             if(terminationCell.type==TerminationCell.Type.SOURCE){
                 this.sourceCell=terminationCell;
             }
-            else {
+            else if(terminationCell.type==TerminationCell.Type.SINK){
                 this.sinkCell=terminationCell;
             }
         }
@@ -186,14 +195,15 @@ public class LevelEditorCanvas extends Canvas {
      */
     public void toggleSourceTileRotation() {
         // TODO
-        if (this.sourceCell != null) {
-            Coordinate cor=this.sourceCell.coord;
-            Direction dir = this.sourceCell.pointingTo.rotateCW();
-            TerminationCell t=new TerminationCell(this.sourceCell.coord,dir,this.sourceCell.type);
-            this.gameProp.cells[cor.row][cor.col]=t;
-            this.sourceCell = t;
-            this.renderCanvas();
+        if (this.sourceCell == null) {
+            return;
         }
+        Coordinate cor=this.sourceCell.coord;
+        Direction dir = this.sourceCell.pointingTo.rotateCW();
+        TerminationCell t=new TerminationCell(this.sourceCell.coord,dir,this.sourceCell.type);
+        this.gameProp.cells[cor.row][cor.col]=t;
+        this.sourceCell = t;
+        this.renderCanvas();
     }
 
     /**
@@ -215,7 +225,10 @@ public class LevelEditorCanvas extends Canvas {
             return false;
         }
         File f = this.getTargetLoadFile();
-        return f != null ? this.loadFromFile(f.toPath()) : false;
+        if(f!=null){
+            return this.loadFromFile(f.toPath());
+        }
+        return  false;
     }
 
     /**
@@ -252,9 +265,8 @@ public class LevelEditorCanvas extends Canvas {
             for(int i=0;i<this.gameProp.rows;i++){
                 for(int j=0;j<this.gameProp.cols;j++){
                     Cell cell=this.gameProp.cells[i][j];
-                    Coordinate cor=cell.coord;
                     if(cell instanceof TerminationCell){
-                        if(i!=0&&i!=cor.row-1&&j!=0&&j!=cor.col-1){
+                        if(i!=0&&i!=this.gameProp.rows-1&&j!=0&&j!=this.gameProp.cols-1){
                             if(this.sourceCell!=null){
                                 throw new InvalidMapException("too many source");
                             }
@@ -367,17 +379,15 @@ public class LevelEditorCanvas extends Canvas {
             if(this.gameProp.delay<=0){
                 return Optional.of(MSG_BAD_DELAY);
             }
-            else{
-                Coordinate source=this.sourceCell.coord.add(this.sourceCell.pointingTo.getOffset());
-                Coordinate sink=this.sinkCell.coord.add(this.sinkCell.pointingTo.getOpposite().getOffset());
-                if(this.gameProp.cells[source.row][source.col] instanceof Wall){
-                    return Optional.of(MSG_SOURCE_TO_WALL);
-                }
-                if(this.gameProp.cells[sink.row][sink.col] instanceof Wall){
-                    return Optional.of(MSG_SOURCE_TO_WALL);
-                }
-                return Optional.empty();
+            Coordinate source=this.sourceCell.coord.add(this.sourceCell.pointingTo.getOffset());
+            Coordinate sink=this.sinkCell.coord.add(this.sinkCell.pointingTo.getOpposite().getOffset());
+            if(this.gameProp.cells[source.row][source.col] instanceof Wall){
+                return Optional.of(MSG_SOURCE_TO_WALL);
             }
+            if(this.gameProp.cells[sink.row][sink.col] instanceof Wall){
+                return Optional.of(MSG_SINK_TO_WALL);
+            }
+            return Optional.empty();
         }
         return Optional.of(MSG_BAD_DIMS);
     }

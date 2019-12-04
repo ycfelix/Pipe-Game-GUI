@@ -67,6 +67,9 @@ public class AudioManager {
      */
     private void playFile(final String name) {
         // TODO
+        if(name.endsWith(".mp3")){
+            return;
+        }
         if(!this.enabled){
             return;
         }

@@ -7,6 +7,7 @@ import io.Deserializer;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
@@ -92,13 +93,15 @@ public class GameplayPane extends GamePane {
      */
     private void onCanvasClicked(MouseEvent event) {
         // TODO
-        boolean playing=!this.game.hasWon()&&!this.game.hasLost();
-        if(playing){
+        if(!this.game.hasWon()&&!this.game.hasLost()){
             this.game.placePipe((int)event.getY()/TILE_SIZE,(int)event.getX()/TILE_SIZE);
             if(this.game.hasWon()){
-
                 AudioManager.getInstance().playSound(AudioManager.SoundRes.WIN);
                 Platform.runLater(this::createWinPopup);
+            }
+            else if(this.game.hasLost()){
+                AudioManager.getInstance().playSound(AudioManager.SoundRes.LOSE);
+                Platform.runLater(this::createLosePopup);
             }
             else{
                 AudioManager.getInstance().playSound(AudioManager.SoundRes.MOVE);
@@ -115,8 +118,7 @@ public class GameplayPane extends GamePane {
      */
     private void onKeyPressed(KeyEvent event) {
         // TODO
-        boolean playing=!this.game.hasWon()&&!this.game.hasLost();
-        if(playing){
+        if(!this.game.hasWon()&&!this.game.hasLost()){
             if(event.getCode()==KeyCode.U){
                 this.game.undoStep();
                 this.game.renderMap(this.gameplayCanvas);
@@ -155,7 +157,6 @@ public class GameplayPane extends GamePane {
         // TODO
         String s=LevelManager.getInstance().getAndSetNextLevel();
         FXGame g=null;
-        System.out.println(s);
         if(s!=null){
             try{
                 g=(new Deserializer(LevelManager.getInstance().getCurrentLevelPath())).parseFXGame();
@@ -179,8 +180,7 @@ public class GameplayPane extends GamePane {
         Alert a = new Alert(Alert.AlertType.CONFIRMATION);
         a.setTitle("Lose popup");
         a.setHeaderText("you lose");
-        ButtonType lose = new ButtonType("Return");
-        a.getButtonTypes().setAll(lose);
+        a.getButtonTypes().setAll(new ButtonType("Return"));
         Optional<ButtonType> c=a.showAndWait();
         String cmd=c.orElseThrow().getText();
         if(cmd.equals("Return")){
@@ -225,25 +225,32 @@ public class GameplayPane extends GamePane {
             this.endGame();
         }
         this.game=game;
+        StringProperty sp=LevelManager.getInstance().getCurrentLevelProperty();
         this.infoPane=new GameplayInfoPane(
-                LevelManager.getInstance().getCurrentLevelProperty(),
+                sp,
                 this.ticksElapsed,
                 game.getNumOfSteps(),
                 game.getNumOfUndo()
         );
         this.topBar.getChildren().add(this.infoPane);
         HBox.setHgrow(this.infoPane,Priority.ALWAYS);
-        game.addOnTickHandler(()->{
-            Platform.runLater(()->{
-                GameplayPane.this.ticksElapsed.set(GameplayPane.this.ticksElapsed.get()+1);
-            });
+        game.addOnTickHandler(new Runnable() {
+            @Override
+            public void run() {
+                Platform.runLater(()->{
+                    GameplayPane.this.ticksElapsed.set(GameplayPane.this.ticksElapsed.get()+1);
+                });
+            }
         });
-        game.addOnFlowHandler(()->{
-            game.updateState();
-            game.renderMap(GameplayPane.this.gameplayCanvas);
-            if(game.hasLost()){
-                AudioManager.getInstance().playSound(AudioManager.SoundRes.LOSE);
-                Platform.runLater(this::createLosePopup);
+        game.addOnFlowHandler(new Runnable() {
+            @Override
+            public void run() {
+                game.updateState();
+                game.renderMap(GameplayPane.this.gameplayCanvas);
+                if(game.hasLost()){
+                    AudioManager.getInstance().playSound(AudioManager.SoundRes.LOSE);
+                    Platform.runLater(GameplayPane.this::createLosePopup);
+                }
             }
         });
         game.renderMap(this.gameplayCanvas);

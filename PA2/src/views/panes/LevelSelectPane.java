@@ -60,10 +60,10 @@ public class LevelSelectPane extends GamePane {
     @Override
     void setCallbacks() {
         // TODO
-        this.returnButton.setOnAction(e->SceneManager.getInstance().showPane(MainMenuPane.class));
-        this.chooseMapDirButton.setOnAction(e->promptUserForMapDirectory());
         this.playButton.setOnAction(e->startGame(false));
         this.playRandom.setOnAction(e->startGame(true));
+        this.returnButton.setOnAction(e->SceneManager.getInstance().showPane(MainMenuPane.class));
+        this.chooseMapDirButton.setOnAction(e->promptUserForMapDirectory());
         this.levelsListView.getSelectionModel().selectedItemProperty().addListener(this::onMapSelected);
     }
 
@@ -84,20 +84,20 @@ public class LevelSelectPane extends GamePane {
             LevelManager.getInstance().setLevel(null);
             p.startGame(new FXGame());
             SceneManager.getInstance().showPane(GameplayPane.class);
+            return;
         }
-        else{
-            try{
-                LevelManager.getInstance().setLevel(this.levelsListView.getSelectionModel().getSelectedItem());
-                FXGame game= new Deserializer(LevelManager.getInstance().getCurrentLevelPath()).parseFXGame();
-                if(game!=null){
-                    p.startGame(game);
-                    SceneManager.getInstance().showPane(GameplayPane.class);
-                }
-            }
-            catch (Exception e){
-                e.printStackTrace();
+        try{
+            LevelManager.getInstance().setLevel(this.levelsListView.getSelectionModel().getSelectedItem());
+            FXGame game= new Deserializer(LevelManager.getInstance().getCurrentLevelPath()).parseFXGame();
+            if(game!=null){
+                p.startGame(game);
+                SceneManager.getInstance().showPane(GameplayPane.class);
             }
         }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -109,7 +109,12 @@ public class LevelSelectPane extends GamePane {
      */
     private void onMapSelected(ObservableValue<? extends String> observable, String oldValue, String newValue) {
         // TODO
-        if(newValue!=null && this.levelsListView.getItems().stream().anyMatch(e->e.equals(newValue))){
+        if(newValue==null){
+            this.levelPreview.setWidth(0);
+            this.levelPreview.setHeight(0);
+            return;
+        }
+        if(this.levelsListView.getItems().stream().anyMatch(e->e.equals(newValue))){
             LevelManager.getInstance().setLevel(newValue);
             try{
                 FXGame game= new Deserializer(LevelManager.getInstance().getCurrentLevelPath()).parseFXGame();
@@ -118,6 +123,7 @@ public class LevelSelectPane extends GamePane {
                     this.playButton.setDisable(false);
                 }
             }catch (Exception e){
+                e.printStackTrace();
             }
         }
         else{
@@ -151,6 +157,7 @@ public class LevelSelectPane extends GamePane {
     private void commitMapDirectoryChange(File dir) {
         // TODO
         this.levelsListView.getSelectionModel().clearSelection();
-        LevelManager.getInstance().setMapDirectory(dir.toPath());
+        LevelManager mgr= LevelManager.getInstance();
+        mgr.setMapDirectory(dir.toPath());
     }
 }

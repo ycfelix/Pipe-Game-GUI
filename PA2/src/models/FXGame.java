@@ -104,8 +104,9 @@ public class FXGame {
     public FXGame(int rows, int cols, int delay, @NotNull Cell[][] cells, @Nullable List<Pipe> pipes) {
         // TODO
         map = new Map(rows,cols,cells);
-        pipeQueue = new PipeQueue(pipes);
         flowTimer = new FlowTimer(delay);
+        pipeQueue = new PipeQueue(pipes);
+
     }
 
     /**
@@ -152,8 +153,12 @@ public class FXGame {
         if(this.map.tryPlacePipe(c,p)){
             this.pipeQueue.consume();
             this.cellStack.push(new FillableCell(c,p));
-            this.numOfSteps.set(this.numOfSteps.get()+1);
+            addStep();
         }
+    }
+
+    private void addStep(){
+        this.numOfSteps.set(this.numOfSteps.get()+1);
     }
 
     /**
@@ -162,7 +167,7 @@ public class FXGame {
     public void skipPipe() {
         // TODO
         this.pipeQueue.consume();
-        this.numOfSteps.set(this.numOfSteps.get()+1);
+        addStep();
 
     }
 
@@ -179,9 +184,10 @@ public class FXGame {
             cellStack.push(undoCell);
             return;
         }
+        //i think if the pipe is filled then undo count should not increase
         pipeQueue.undo(undoCell.getPipe().orElseThrow());
         map.undo(undoCell.coord);
-        this.numOfSteps.set(this.numOfSteps.get()+1);
+        addStep();
     }
 
     /**

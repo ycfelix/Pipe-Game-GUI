@@ -87,14 +87,18 @@ public class LevelManager {
         // TODO
         try(Stream<Path> f=Files.walk(this.mapDirectory,1)){
             Stream<Path> files=f.filter(e-> e.toFile().isFile());
-            List<String> maps=files.map(Path::getFileName).map(Path::toString).filter(e->e.endsWith(".map")).
-                    sorted(String::compareTo).collect(Collectors.toList());
-            this.levelNames.clear();
-            this.levelNames.addAll(maps);
+            if(files!=null){
+                List<String> maps=files.map(e->e.getFileName().toString()).
+                        filter(e->e.endsWith(".map")).
+                        sorted(String::compareTo).
+                        collect(Collectors.toList());
+                this.levelNames.clear();
+                this.levelNames.addAll(maps);
+            }
         }
         catch (Exception e){
             Alert a=new Alert(Alert.AlertType.WARNING);
-            a.setTitle("Critical Warning");
+            a.setTitle("Warning");
             a.setHeaderText("cannot load level names from disk");
             a.showAndWait();
         }
@@ -111,7 +115,11 @@ public class LevelManager {
     @NotNull
     public Path getCurrentLevelPath() {
         // TODO
-        return this.mapDirectory.resolve(curLevelNameProperty.get()).normalize();
+        Path p=this.mapDirectory.resolve(curLevelNameProperty.get());
+        if(p!=null){
+            return p.normalize();
+        }
+        return null;
     }
 
     /**
@@ -122,8 +130,10 @@ public class LevelManager {
      */
     public void setLevel(@Nullable String levelName) {
         // TODO
-        if(levelName!=null&&levelName.isBlank()){
-            throw new IllegalArgumentException("empty level name!");
+        if(levelName!=null){
+            if(levelName.isBlank()){
+                throw new IllegalArgumentException("empty level name!");
+            }
         }
         this.curLevelNameProperty.set(levelName);
 

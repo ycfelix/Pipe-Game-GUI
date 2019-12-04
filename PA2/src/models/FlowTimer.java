@@ -153,7 +153,9 @@ public class FlowTimer {
      */
     void stop() {
         // TODO
-        this.flowTimer.cancel();
+        if(this.flowTimer!=null){
+            this.flowTimer.cancel();
+        }
     }
 
     /**

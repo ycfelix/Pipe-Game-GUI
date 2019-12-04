@@ -32,11 +32,12 @@ public class Serializer {
         if(f.exists()&&f.delete());
         f.createNewFile();
         try(BufferedWriter writer=new BufferedWriter(new PrintWriter(f))){
-            writer.write(prop.rows);
+            writer.write(String.valueOf(prop.rows));
             writer.newLine();
-            writer.write(prop.cols);
+            writer.write(String.valueOf(prop.cols));
             writer.newLine();
-            writer.write(prop.delay);
+            writer.write(String.valueOf(prop.delay));
+            writer.newLine();
             for(int i=0;i<prop.rows;i++){
                 for(int j=0;j<prop.cols;j++){
                     writer.write(prop.cells[i][j].toSerializedRep());
